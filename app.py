@@ -120,7 +120,7 @@ class MLflowStack(Stack):
                 version=rds.MysqlEngineVersion.VER_8_0_34
             ),
             instance_type=ec2.InstanceType.of(
-                ec2.InstanceClass.BURSTABLE2, ec2.InstanceSize.SMALL
+                ec2.InstanceClass.BURSTABLE3, ec2.InstanceSize.SMALL
             ),
             vpc=vpc,
             security_groups=[sg_rds],
