@@ -87,6 +87,7 @@ class MLflowStack(Stack):
         vpc.add_gateway_endpoint(
             "S3Endpoint", service=ec2.GatewayVpcEndpointAwsService.S3
         )
+        
         # ==================================================
         # ================= S3 BUCKET ======================
         # ==================================================
@@ -96,9 +97,26 @@ class MLflowStack(Stack):
             bucket_name=bucket_name,
             public_read_access=False,
         )
-        # # ==================================================
-        # # ================== DATABASE  =====================
-        # # ==================================================
+        
+        # ==================================================
+        # ============= DATABASE PARAMETER GROUP ============
+        # ==================================================
+        # Create a custom parameter group for MySQL with MLflow compatibility
+        db_parameter_group = rds.ParameterGroup(
+            scope=self,
+            id="MLflowDBParameterGroup",
+            engine=rds.DatabaseInstanceEngine.mysql(
+                version=rds.MysqlEngineVersion.of("8.4.5", "8.4")
+            ),
+            parameters={
+                "log_bin_trust_function_creators": "1"
+            },
+            description="Parameter group for MLflow MySQL database with trigger creation enabled"
+        )
+        
+        # ==================================================
+        # ================== DATABASE  =====================
+        # ==================================================
         # Creates a security group for AWS RDS
         sg_rds = ec2.SecurityGroup(
             scope=self, id="SGRDS", vpc=vpc, security_group_name="sg_rds"
@@ -127,10 +145,12 @@ class MLflowStack(Stack):
             vpc_subnets=ec2.SubnetSelection(
                 subnet_type=ec2.SubnetType.PRIVATE_ISOLATED
             ),
+            parameter_group=db_parameter_group,  # This fixes the MLflow trigger creation issue
             # multi_az=True,
             removal_policy=RemovalPolicy.DESTROY,
             deletion_protection=False,
         )
+        
         # ==================================================
         # =============== FARGATE SERVICE ==================
         # ==================================================
@@ -187,6 +207,7 @@ class MLflowStack(Stack):
             scale_in_cooldown=Duration.seconds(60),
             scale_out_cooldown=Duration.seconds(60),
         )
+        
         # ==================================================
         # =================== OUTPUTS ======================
         # ==================================================
