@@ -1,7 +1,7 @@
 FROM python:3.12
 
 RUN pip install --no-cache-dir \
-    mlflow == 3.9.0 \
+    mlflow == 2.22.1 \
     pymysql \
     boto3 && \
     mkdir -p /mlflow
