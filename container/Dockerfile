@@ -13,4 +13,5 @@ CMD mlflow server \
     --port 5000 \
     --default-artifact-root ${BUCKET} \
     --backend-store-uri mysql+pymysql://${USERNAME}:${PASSWORD}@${HOST}:${PORT}/${DATABASE} \
-    --allowed-hosts "*"
+    --allowed-hosts "*" \
+    --cors-allowed-origins "*"
