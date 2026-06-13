@@ -1,10 +1,10 @@
-FROM python:3.10.12
+FROM python:3.12
 
-RUN pip install \
-    mlflow==2.15.1 \
-    pymysql==1.0.2 \
+RUN pip install --no-cache-dir \
+    mlflow \
+    pymysql \
     boto3 && \
-    mkdir /mlflow/
+    mkdir -p /mlflow
 
 EXPOSE 5000
 
