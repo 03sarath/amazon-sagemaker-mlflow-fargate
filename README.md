@@ -34,32 +34,41 @@ To go through this example, make sure you have the following:
 ### Deploying the stack
 
 You can view the CDK stack details in [app.py](https://github.com/aws-samples/amazon-sagemaker-mlflow-fargate/blob/main/app.py).
-Execute the following commands to install CDK and make sure you have the right dependencies:
+Run these commands in [AWS CloudShell](https://console.aws.amazon.com/cloudshell) (tested Oct 2026 with
+`aws-cdk-lib 2.274.0`):
 
-```
-npm install -g aws-cdk@latest   # use sudo in AWS CloudShell
+```bash
+git clone https://github.com/03sarath/amazon-sagemaker-mlflow-fargate.git
+cd amazon-sagemaker-mlflow-fargate          # or: git pull, if already cloned
+
+# CloudShell home is world-writable (0777); jsii refuses to run until it is fixed
+chmod 755 ~
+
+# Global npm install needs sudo in CloudShell
+sudo npm install -g aws-cdk@latest
+
 python3 -m venv .venv
 source .venv/bin/activate
 pip3 install -r requirements.txt
-```
-Alternative commends with latest version of cdk tested @2026
-```
-chmod 755 ~
-sudo npm install -g aws-cdk@latest
-cdk deploy --parameters ProjectName=mlflow --require-approval never
-```
 
-Once this is installed, you can execute the following commands to deploy the inference service into your account:
-
-```
-ACCOUNT_ID=$(aws sts get-caller-identity --query Account | tr -d '"')
+ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 AWS_REGION=$(aws configure get region)
-cdk bootstrap aws://${ACCOUNT_ID}/${AWS_REGION}
+cdk bootstrap aws://${ACCOUNT_ID}/${AWS_REGION}   # once per account/region
 cdk deploy --parameters ProjectName=mlflow --require-approval never
 ```
 
-The first 2 commands will get your account ID and current AWS region using the AWS CLI on your computer. ```cdk
-bootstrap``` and ```cdk deploy``` will build the container image locally, push it to ECR, and deploy the stack. 
+`cdk deploy` builds the MLflow server image from `container/Dockerfile`, pushes it to ECR and deploys the stack.
+Copy the **`LoadBalancerDNS`** value from the stack outputs: it is your MLflow tracking URI.
+Re-run `cdk deploy` whenever the MLflow version in `container/Dockerfile` changes; RDS and S3 are kept, so runs and
+models are not lost.
+
+Troubleshooting:
+
+| Error | Fix |
+|---|---|
+| `Cannot use the jsii package cache ... (mode 0777)` | `chmod 755 ~` (or `export JSII_RUNTIME_PACKAGE_CACHE=disabled`) |
+| `npm error code EACCES` on `npm install -g` | use `sudo npm install -g aws-cdk@latest` |
+| `Node 20 has reached end-of-life` warning | only a warning; silence with `export JSII_SILENCE_WARNING_DEPRECATED_NODE_VERSION=1` |
 
 The stack will take a few minutes to launch the MLflow server on AWS Fargate, with an S3 bucket and a MySQL database on
 RDS. You can then use the load balancer URI present in the stack outputs to access the MLflow UI:
@@ -100,11 +109,16 @@ from Scikit-Learn and log our machine learning runs into MLflow 3.
 Versions: MLflow `3.17.2` (server, training job and notebooks must match), SageMaker SDK `3.x`,
 SageMaker Scikit-learn container `1.4-2`.
 
-Follow the step-by-step guide by executing the notebooks in the following folders:
+On your SageMaker notebook instance:
+
+1. Clone (or `git pull`) this repository.
+2. In each notebook, replace `<YOUR-LOAD-BALANCER-DNS>` with the `LoadBalancerDNS` stack output.
+3. Run the notebooks in order, restarting the kernel after the first install cell of each:
 
 * lab/1_track_experiments.ipynb - train on SageMaker, log params, metrics, dataset and model to MLflow
 * lab/2_track_experiments_hpo.ipynb - tune with SageMaker HPO, compare trials, register the best model as `@champion`
 * lab/3_deploy_model.ipynb - deploy `models:/california-housing@champion` to a SageMaker endpoint
+  (the first `mlflow sagemaker build-and-push-container` takes 10-20 minutes; delete the endpoint at the end to stop costs)
 
 ### Current limitation on user access control
 
