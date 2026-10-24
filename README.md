@@ -42,6 +42,12 @@ python3 -m venv .venv
 source .venv/bin/activate
 pip3 install -r requirements.txt
 ```
+Alternative commends with latest version of cdk tested @2026
+```
+chmod 755 ~
+sudo npm install -g aws-cdk@latest
+cdk deploy --parameters ProjectName=mlflow --require-approval never
+```
 
 Once this is installed, you can execute the following commands to deploy the inference service into your account:
 
