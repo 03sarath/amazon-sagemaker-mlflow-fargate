@@ -9,8 +9,12 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import root_mean_squared_error
 import mlflow
 from mlflow.models import infer_signature
+from importlib.metadata import version
 
 logging.basicConfig(level=logging.INFO)
+
+# packages the model needs at inference time (pinned to the versions used for training)
+SERVING_PACKAGES = ("mlflow", "scikit-learn", "skops", "numpy", "scipy", "pandas")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -61,9 +65,12 @@ if __name__ == "__main__":
             input_example=X_test.head(3),
             # MLflow saves sklearn models with skops (safe format); the forest's tree class must be trusted explicitly
             skops_trusted_types=["sklearn.tree._tree.Tree"],
+            # pin the serving dependencies explicitly: MLflow's automatic inference picks up stale
+            # packages from the SageMaker training image (e.g. typing==3.10.0.0) that fail to install
+            pip_requirements=[f"{pkg}=={version(pkg)}" for pkg in SERVING_PACKAGES],
         )
 
-        # logs r2, rmse, mae, ... plus residual plots, all linked to the run and the model
+        # logs r2, rmse, mae, mape, ... linked to the run and the model
         mlflow.models.evaluate(
             model_info.model_uri,
             data=test_df,
