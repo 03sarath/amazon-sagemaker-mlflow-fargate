@@ -120,6 +120,26 @@ On your SageMaker notebook instance:
 * lab/3_deploy_model.ipynb - deploy `models:/california-housing@champion` to a SageMaker endpoint
   (the first `mlflow sagemaker build-and-push-container` takes 10-20 minutes; delete the endpoint at the end to stop costs)
 
+#### Register the best model and set the `champion` alias from the MLflow UI
+
+Lab 2 does this in code. To do the same in the MLflow UI (open the `LoadBalancerDNS` URL in your browser):
+
+1. **Find the best run** - **Experiments** > `california-housing-hpo`. In the runs table, click **Columns** and add
+   `root_mean_squared_error`, then click that column header to sort ascending. The top run is the best (lowest RMSE).
+   Optional: select several runs and click **Compare** to see the parallel-coordinates chart.
+2. **Register its model** - open the best run. In MLflow 3 the model is a *logged model*: click it in the run's
+   **Logged models** section (or the experiment's **Models** tab), then click **Register model**.
+   On older MLflow UIs: **Artifacts** > select the `model` folder > **Register Model**.
+3. **Choose the registered model** - in the pop-up pick `california-housing` (or **Create New Model** and type
+   `california-housing` the first time), then **Register**. MLflow creates a new version (v1, v2, ...).
+4. **Set the alias** - go to **Models** > `california-housing`. In the versions table, click **Add** (or the pencil
+   icon) in the **Aliases** column of the new version, type `champion`, and **Save**. An alias points to only one
+   version, so adding it here moves it away from the previous version.
+5. **Use it** - Lab 3 deploys `models:/california-housing@champion`; after moving the alias, re-run the
+   `update_deployment` cell to roll the endpoint to the new version.
+
+Model stages (Staging/Production) are deprecated in MLflow 3; use aliases instead.
+
 ### Current limitation on user access control
 
 The [open source version](https://github.com/mlflow/mlflow) of MLflow does not currently provide user access control
