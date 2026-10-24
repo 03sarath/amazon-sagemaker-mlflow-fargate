@@ -37,7 +37,7 @@ You can view the CDK stack details in [app.py](https://github.com/aws-samples/am
 Execute the following commands to install CDK and make sure you have the right dependencies:
 
 ```
-npm install -g aws-cdk@2.51.1
+npm install -g aws-cdk@latest   # use sudo in AWS CloudShell
 python3 -m venv .venv
 source .venv/bin/activate
 pip3 install -r requirements.txt
@@ -87,18 +87,18 @@ Connect to your notebook instance and set the remote tracking URI.
 ### Running an example lab
 
 This describes how to develop, train, tune and deploy a Random Forest model using Scikit-learn with
-the [SageMaker Python SDK](https://sagemaker.readthedocs.io/en/stable/frameworks/sklearn/using_sklearn.html). We use
-the [Boston Housing dataset](https://scikit-learn.org/stable/datasets/index.html#boston-dataset), present
-in [Scikit-Learn](https://scikit-learn.org/stable/index.html.), and log our machine learning runs into MLflow. You can
-find the original lab in
-the [SageMaker Examples](https://github.com/aws/amazon-sagemaker-examples/tree/fb04396d2e7ceeb135b0b0a516e54c97922ca0d8/sagemaker-python-sdk/scikit_learn_randomforest)
-repository for more details on using custom Scikit-learn scipts with Amazon SageMaker.
+the [SageMaker Python SDK v3](https://sagemaker.readthedocs.io/en/stable/) (`ModelTrainer`, `HyperparameterTuner`). We use
+the [California Housing dataset](https://scikit-learn.org/stable/modules/generated/sklearn.datasets.fetch_california_housing.html)
+from Scikit-Learn and log our machine learning runs into MLflow 3.
+
+Versions: MLflow `3.17.2` (server, training job and notebooks must match), SageMaker SDK `3.x`,
+SageMaker Scikit-learn container `1.4-2`.
 
 Follow the step-by-step guide by executing the notebooks in the following folders:
 
-* lab/1_track_experiments.ipynb
-* lab/2_track_experiments_hpo.ipynb
-* lab/3_deploy_model.ipynb
+* lab/1_track_experiments.ipynb - train on SageMaker, log params, metrics, dataset and model to MLflow
+* lab/2_track_experiments_hpo.ipynb - tune with SageMaker HPO, compare trials, register the best model as `@champion`
+* lab/3_deploy_model.ipynb - deploy `models:/california-housing@champion` to a SageMaker endpoint
 
 ### Current limitation on user access control
 
